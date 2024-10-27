@@ -1,20 +1,70 @@
 package com.elzhart.shortener.mobileclient
 
 import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.compose.LinkShortenerTheme
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        setContent {
+            LinkShortenerTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    LinkShortenerApp()
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun LinkShortenerApp() {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar()
+        }
+    ) {
+        LinkLayout(contentPadding = it, modifier = Modifier.padding(it))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopAppBar(modifier: Modifier = Modifier) {
+    CenterAlignedTopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.displayLarge,
+            )
+        },
+        modifier = modifier
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LinkShortenerPreview() {
+    LinkShortenerTheme {
+        LinkShortenerApp()
     }
 }

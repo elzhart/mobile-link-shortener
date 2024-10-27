@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">mobile-link-shortener</string>
+    <string name="app_name">Link Shortener</string>
+    <string name="long_url_label">Shorten a long URL</string>
+    <string name="short_url_label">Short URL</string>
+    <string name="alias_label">Customize your link</string>
+    <string name="long_url_hint">Enter long link here</string>
+    <string name="alias_hint">Enter alias</string>
+    <string name="mock_long_url">https://github.com/elzhart/mobile-link-shortener</string>
+    <string name="mock_alias">tiny</string>
+    <string name="mock_short_url">http://elzhart.com/tiny</string>
+    <string name="shorten_title">Shorten URL</string>
+    <string name="shorten_another_title">Shorten another</string>
 </resources>

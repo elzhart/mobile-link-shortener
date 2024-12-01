@@ -4,11 +4,10 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -24,10 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,102 +31,82 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.elzhart.shortener.mobileclient.api.LinkClientFactory
-import com.elzhart.shortener.mobileclient.api.dto.LinkShortenInput
+import com.elzhart.shortener.mobileclient.data.LinkUiState
 import com.example.compose.LinkShortenerTheme
 
 
 @Composable
-fun LinkLayout(
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+fun LinkScreen(
+    modifier: Modifier = Modifier.fillMaxHeight(),
+    linkUiState: LinkUiState,
+    textReadOnly: Boolean = false,
+    @StringRes
+    buttonTitle: Int,
+    onLongLinkValueChange: (String) -> Unit = {},
+    onAliasValueChange: (String) -> Unit = {},
+    onButtonClick: () -> Unit
 ) {
-    var shortLink by remember { mutableStateOf("") }
-    var longLink by remember { mutableStateOf("") }
-    var alias by remember { mutableStateOf("") }
-    Box(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
-                .safeDrawingPadding(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            TextEnterPanel(
-                label = R.string.long_url_label,
-                hint = R.string.long_url_hint,
-                leadingIcon = R.drawable.link,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next
-                ),
-                onValueChange = {
-                    longLink = it
-                },
-                value = longLink,
-                readOnly = shortLink.isNotBlank()
-            )
 
-            Spacer(modifier = Modifier.size(32.dp))
+    Column(
+        modifier = modifier
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState())
+            .safeDrawingPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        TextEnterPanel(
+            label = R.string.long_url_label,
+            hint = R.string.long_url_hint,
+            leadingIcon = R.drawable.link,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next
+            ),
+            onValueChange = onLongLinkValueChange,
+            value = linkUiState.longLink,
+            readOnly = textReadOnly
+        )
 
-            TextEnterPanel(
-                label = R.string.alias_label,
-                hint = R.string.alias_hint,
-                leadingIcon = R.drawable.alias,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Done
-                ),
-                onValueChange = {
-                    alias = it
-                },
-                value = alias,
-                readOnly = shortLink.isNotBlank()
-            )
+        Spacer(modifier = Modifier.size(32.dp))
 
+        TextEnterPanel(
+            label = R.string.alias_label,
+            hint = R.string.alias_hint,
+            leadingIcon = R.drawable.alias,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Done
+            ),
+            onValueChange = onAliasValueChange,
+            value = linkUiState.alias,
+            readOnly = textReadOnly
+        )
+
+        if (linkUiState.shortLink.isNotBlank()) {
             Spacer(modifier = Modifier.size(32.dp))
 
             ResultPanel(
                 label = R.string.short_url_label,
                 leadingIcon = R.drawable.done,
-                value = shortLink
-            )
-
-            Spacer(modifier = Modifier.size(32.dp))
-
-            ShortenButton(
-                buttonTitle = if (shortLink.isBlank()) {
-                    R.string.shorten_title
-                } else {
-                    R.string.shorten_another_title
-                },
-                onButtonClick = {
-                    if (shortLink.isBlank()) {
-                        shortLink = shortenLink(longLink, alias)
-                    } else {
-                        shortLink = ""
-                        longLink = ""
-                        alias = ""
-                    }
-                },
-                isButtonEnabled = longLink.isNotBlank()
+                value = linkUiState.shortLink
             )
         }
+
+        Spacer(modifier = Modifier.size(32.dp))
+
+        ShortenButton(
+            buttonTitle = buttonTitle,
+            onButtonClick = onButtonClick,
+            isButtonEnabled = linkUiState.longLink.isNotBlank()
+        )
     }
-}
-
-
-private fun shortenLink(linkInput: String, aliasInput: String): String {
-    if (linkInput.length < 10) return ""
-    val client = LinkClientFactory.getInstance()
-    return client.mockShortenUrl(
-        LinkShortenInput(longUrl = linkInput, alias = aliasInput)
-    )
 }
 
 @Composable
 fun ShortenButton(
-    @StringRes buttonTitle: Int, onButtonClick: () -> Unit, isButtonEnabled: Boolean = false
+    @StringRes buttonTitle: Int,
+    onButtonClick: () -> Unit,
+    isButtonEnabled: Boolean = false
 ) {
     Button(
         onClick = onButtonClick, modifier = Modifier, enabled = isButtonEnabled
@@ -224,7 +199,16 @@ private fun TextHeader(
 @Composable
 fun LinkLayoutPreview() {
     LinkShortenerTheme {
-        LinkLayout()
+        LinkScreen(
+            linkUiState = LinkUiState(
+                longLink = "http://long_link_test.com",
+                alias = "abc",
+                shortLink = "http://test.com/abc"
+            ),
+            textReadOnly = true,
+            buttonTitle = R.string.shorten_another_title,
+            onButtonClick = {}
+        )
     }
 }
 

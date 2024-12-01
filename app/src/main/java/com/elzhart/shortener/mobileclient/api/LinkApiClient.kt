@@ -1,8 +1,7 @@
 package com.elzhart.shortener.mobileclient.api
 
 import com.elzhart.shortener.mobileclient.api.dto.LinkShortenInput
-import retrofit2.Call
-import retrofit2.Callback
+import com.elzhart.shortener.mobileclient.api.dto.ShortLinkDto
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -13,31 +12,27 @@ class LinkApiClient {
         const val MOCK_RESPONSE_HOST = "http://elzhart.com"
     }
 
-    private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("https://elzhart.shortener.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    private val apiService: LinkApiService = retrofit.create(LinkApiService::class.java)
-
-    fun shortenUrl(input: LinkShortenInput): String? {
-        val call: Call<String> = apiService.shortenUrl(input)
+    suspend fun shortenUrl(input: LinkShortenInput): String {
+        val response: Response<ShortLinkDto> = LinkApi.retrofitService.shortenUrl(input)
         var shortUrl: String? = null
-        call.enqueue(object : Callback<String> {
-            override fun onResponse(call: Call<String>, response: Response<String?>) {
-                if (response.isSuccessful && response.body() != null) {
-                    shortUrl = response.body()
-                }
-            }
+        if (response.isSuccessful && response.body() != null) {
+            shortUrl = response.body()?.url
+        }
 
-            override fun onFailure(call: Call<String>, t: Throwable) {
-                throw t
-            }
-        })
-
-        return shortUrl
+        return shortUrl.orEmpty()
     }
 
     fun mockShortenUrl(input: LinkShortenInput): String = "$MOCK_RESPONSE_HOST/${input.alias}"
 
+}
+
+private val retrofit: Retrofit = Retrofit.Builder()
+    .baseUrl("http://192.168.1.130:8080/")
+    .addConverterFactory(GsonConverterFactory.create())
+    .build()
+
+object LinkApi {
+    val retrofitService: LinkApiService by lazy {
+        retrofit.create(LinkApiService::class.java)
+    }
 }

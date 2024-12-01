@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Link Shortener</string>
+    <string name="back_button">Back</string>
+    <string name="log_in">Login</string>
+    <string name="register">Registration</string>
+    <string name="shortener">Shortener Form</string>
+    <string name="result">Result</string>
     <string name="long_url_label">Shorten a long URL</string>
     <string name="short_url_label">Short URL</string>
     <string name="alias_label">Customize your link</string>

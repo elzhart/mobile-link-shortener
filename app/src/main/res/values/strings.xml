@@ -15,4 +15,17 @@
     <string name="mock_short_url">http://elzhart.com/tiny</string>
     <string name="shorten_title">Shorten URL</string>
     <string name="shorten_another_title">Shorten another</string>
+    <string name="login_button_title">Log in</string>
+    <string name="account_exist_question">Don\'t have an account?</string>
+    <string name="signup_button_title">Sign up</string>
+    <string name="email_label">EMAIL</string>
+    <string name="email_short_label">Email</string>
+    <string name="email_hint">Enter your email</string>
+    <string name="full_name_label">Full name</string>
+    <string name="full_name_hint">Enter your full name</string>
+    <string name="password_label">PASSWORD</string>
+    <string name="password_short">Password</string>
+    <string name="password_hint">Enter your password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="confirm_password_hint">Enter your password again</string>
 </resources>

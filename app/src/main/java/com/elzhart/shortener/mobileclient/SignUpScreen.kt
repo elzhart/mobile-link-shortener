@@ -16,26 +16,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elzhart.shortener.mobileclient.composable.CommonButton
 import com.elzhart.shortener.mobileclient.composable.TextEnterPanel
-import com.elzhart.shortener.mobileclient.data.LoginUiState
+import com.elzhart.shortener.mobileclient.data.SignUpUiState
 import com.example.compose.LinkShortenerTheme
 
 
 @Composable
-fun LogInScreen(
+fun SignUpScreen(
     modifier: Modifier = Modifier.fillMaxHeight(),
-    loginUiState: LoginUiState,
+    signupUiState: SignUpUiState,
     errorMsg: String = "",
     onEmailValueChange: (String) -> Unit = {},
+    onFullNameValueChange: (String) -> Unit = {},
     onPasswordValueChange: (String) -> Unit = {},
-    onLogInButtonClick: () -> Unit,
-    onSignUpButtonClick: () -> Unit,
+    onConfirmPasswordValueChange: (String) -> Unit = {},
+    onSignUpButtonClick: () -> Unit
 ) {
 
     Column(
@@ -48,45 +48,63 @@ fun LogInScreen(
         verticalArrangement = Arrangement.Center
     ) {
         TextEnterPanel(
-            label = R.string.email_label,
+            label = R.string.email_short_label,
             hint = R.string.email_hint,
             leadingIcon = R.drawable.email,
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next
             ),
             onValueChange = onEmailValueChange,
-            value = loginUiState.email
+            value = signupUiState.email
         )
 
         Spacer(modifier = Modifier.size(32.dp))
 
         TextEnterPanel(
-            label = R.string.password_label,
+            label = R.string.full_name_label,
+            hint = R.string.full_name_hint,
+            leadingIcon = R.drawable.account,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next
+            ),
+            onValueChange = onFullNameValueChange,
+            value = signupUiState.fullName
+        )
+
+        Spacer(modifier = Modifier.size(32.dp))
+
+        TextEnterPanel(
+            label = R.string.password_short,
             hint = R.string.password_hint,
             leadingIcon = R.drawable.shield_account,
             keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Done
+                keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next
             ),
             onValueChange = onPasswordValueChange,
-            value = loginUiState.password
+            value = signupUiState.password
+        )
+
+        Spacer(modifier = Modifier.size(32.dp))
+
+        TextEnterPanel(
+            label = R.string.confirm_password,
+            hint = R.string.confirm_password_hint,
+            leadingIcon = R.drawable.shield_check,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Done
+            ),
+            onValueChange = onConfirmPasswordValueChange,
+            value = signupUiState.rePassword
         )
 
         Spacer(modifier = Modifier.size(32.dp))
 
         CommonButton(
-            buttonTitle = R.string.login_button_title,
-            onButtonClick = onLogInButtonClick,
-            isButtonEnabled = loginUiState.isFullFilled()
-        )
-        Text(
-            text = stringResource(id = R.string.account_exist_question),
-            style = MaterialTheme.typography.labelSmall
-        )
-        CommonButton(
             buttonTitle = R.string.signup_button_title,
             onButtonClick = onSignUpButtonClick,
-            isButtonEnabled = true
+            isButtonEnabled = signupUiState.isFullFilled()
         )
+
         if (errorMsg.isNotBlank()) {
             Spacer(modifier = Modifier.size(32.dp))
             Text(
@@ -100,19 +118,17 @@ fun LogInScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun LoginPreview() {
+fun SignupPreview() {
     LinkShortenerTheme {
-        LogInScreen(
-            loginUiState = LoginUiState(
+        SignUpScreen(
+            signupUiState = SignUpUiState(
                 email = "amelzhanov@gmail.com",
-                password = "abc"
+                fullName = "Elzhanov Artur Muratovich",
+                password = "abc",
+                rePassword = "abc"
             ),
-            errorMsg = "Bad credentials!",
-            onLogInButtonClick = {},
+            errorMsg = "Wrong email format!",
             onSignUpButtonClick = {}
         )
     }
 }
-
-
-

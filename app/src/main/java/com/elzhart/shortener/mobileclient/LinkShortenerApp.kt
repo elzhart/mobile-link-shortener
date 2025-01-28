@@ -15,7 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -24,22 +27,24 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.elzhart.shortener.mobileclient.ui.link.LinkViewModel
-import com.elzhart.shortener.mobileclient.ui.login.LogInViewModel
-import com.elzhart.shortener.mobileclient.ui.signup.SignUpViewModel
+import com.elzhart.shortener.mobileclient.ui.login.UserViewModel
 import com.example.compose.LinkShortenerTheme
 
 enum class LinkShortenerScreen(val title: Int) {
     Login(title = R.string.log_in),
     SignUp(title = R.string.register),
     Shortener(title = R.string.shortener),
-    Result(title = R.string.result)
+    Result(title = R.string.result);
+
+    companion object {
+        val canLogOutScreens: List<String> = listOf(Shortener.name, Result.name)
+    }
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun LinkShortenerApp(
-    loginViewModel: LogInViewModel = viewModel(factory = LogInViewModel.Factory),
-    signupViewModel: SignUpViewModel = viewModel(),
+    userViewModel: UserViewModel = viewModel(factory = UserViewModel.Factory),
     linkViewModel: LinkViewModel = viewModel(factory = LinkViewModel.Factory)
 ) {
 
@@ -48,18 +53,27 @@ fun LinkShortenerApp(
     val currentScreen = LinkShortenerScreen.valueOf(
         backStackEntry?.destination?.route ?: LinkShortenerScreen.Login.name
     )
+
+    val clipboardManager = LocalClipboardManager.current
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             LinkShortenerAppBar(
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
+                canLogOut = navController.currentDestination?.route in LinkShortenerScreen.canLogOutScreens,
+                logOut = {
+                    linkViewModel.clearWithPreferences()
+                    userViewModel.clear()
+                    navController.popBackStack()
+                    navController.navigate(LinkShortenerScreen.Login.name)
+                },
                 navigateUp = { navController.navigateUp() }
             )
         }
     ) { innerPadding ->
-        val loginUiState by loginViewModel.loginUiState.collectAsState()
-        val signUpUiState by signupViewModel.signupUiState.collectAsState()
+        val userUiState by userViewModel.userUiState.collectAsState()
         val linkUiState by linkViewModel.linkUiState.collectAsState()
 
         NavHost(
@@ -70,20 +84,13 @@ fun LinkShortenerApp(
             composable(route = LinkShortenerScreen.Login.name) {
                 LogInScreen(
                     modifier = Modifier.padding(innerPadding),
-                    loginUiState = loginUiState,
-                    errorMsg = loginUiState.errorMsg,
-                    onEmailValueChange = loginViewModel::onEmailChange,
-                    onPasswordValueChange = loginViewModel::onPasswordChange,
-                    onLogInButtonClick = {
-                        loginViewModel.login()
-                        if (loginUiState.errorMsg.isBlank()) {
-                            loginViewModel.clear()
-                            navController.navigate(LinkShortenerScreen.Shortener.name)
-                        } else {
-                            navController.navigate(LinkShortenerScreen.Login.name)
-                        }
-                    },
+                    userUiState = userUiState,
+                    errorMsg = userUiState.errorMsg,
+                    onEmailValueChange = userViewModel::onEmailChange,
+                    onPasswordValueChange = userViewModel::onPasswordChange,
+                    onLogInButtonClick = { userViewModel.onLogin(navController) },
                     onSignUpButtonClick = {
+                        navController.popBackStack()
                         navController.navigate(LinkShortenerScreen.SignUp.name)
                     }
                 )
@@ -91,22 +98,13 @@ fun LinkShortenerApp(
             composable(route = LinkShortenerScreen.SignUp.name) {
                 SignUpScreen(
                     modifier = Modifier.padding(innerPadding),
-                    signupUiState = signUpUiState,
-                    errorMsg = signUpUiState.errorMsg,
-                    onEmailValueChange = signupViewModel::onEmailChange,
-                    onFullNameValueChange = signupViewModel::onFullNameChange,
-                    onPasswordValueChange = signupViewModel::onPasswordChange,
-                    onConfirmPasswordValueChange = signupViewModel::onPasswordConfirmChange,
-                    onSignUpButtonClick = {
-                        signupViewModel.signup()
-                        if (signUpUiState.errorMsg.isBlank()) {
-                            loginViewModel.onSignUp(signUpUiState)
-                            signupViewModel.clear()
-                            navController.navigate(LinkShortenerScreen.Login.name)
-                        } else {
-                            navController.navigate(LinkShortenerScreen.SignUp.name)
-                        }
-                    }
+                    userUiState = userUiState,
+                    errorMsg = userUiState.errorMsg,
+                    onEmailValueChange = userViewModel::onEmailChange,
+                    onFullNameValueChange = userViewModel::onFullNameChange,
+                    onPasswordValueChange = userViewModel::onPasswordChange,
+                    onConfirmPasswordValueChange = userViewModel::onPasswordConfirmChange,
+                    onSignUpButtonClick = { userViewModel.onSignUp(navController) }
                 )
             }
             composable(route = LinkShortenerScreen.Shortener.name) {
@@ -130,12 +128,18 @@ fun LinkShortenerApp(
                     textReadOnly = true,
                     buttonTitle = R.string.shorten_another_title,
                     onButtonClick = {
-                        clearAndBackToStart(linkViewModel, navController)
-                    })
+                        clearAndBackToStart(
+                            linkViewModel::clear,
+                            navController,
+                            LinkShortenerScreen.Shortener.name
+                        )
+                    },
+                    onCopyClick = {
+                        clipboardManager.setText(AnnotatedString(linkUiState.shortLink))
+                    }
+                )
             }
         }
-
-
     }
 }
 
@@ -143,7 +147,9 @@ fun LinkShortenerApp(
 @Composable
 fun LinkShortenerAppBar(
     currentScreen: LinkShortenerScreen,
+    canLogOut: Boolean,
     canNavigateBack: Boolean,
+    logOut: () -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -155,6 +161,17 @@ fun LinkShortenerAppBar(
             )
         },
         modifier = modifier,
+
+        actions = {
+            if (canLogOut) {
+                IconButton(onClick = logOut) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.logout),
+                        contentDescription = stringResource(R.string.log_out)
+                    )
+                }
+            }
+        },
         navigationIcon = {
             if (canNavigateBack) {
                 IconButton(onClick = navigateUp) {
@@ -177,9 +194,10 @@ fun LinkShortenerPreview() {
 }
 
 private fun clearAndBackToStart(
-    viewModel: LinkViewModel,
-    navController: NavHostController
+    viewModelClear: () -> Unit,
+    navController: NavHostController,
+    destination: String
 ) {
-    viewModel.clear()
-    navController.popBackStack(LinkShortenerScreen.Shortener.name, inclusive = false)
+    viewModelClear.invoke()
+    navController.popBackStack(destination, inclusive = false)
 }

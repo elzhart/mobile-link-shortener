@@ -6,11 +6,12 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.elzhart.shortener.mobileclient.LinkReleaseApplication
+import com.elzhart.shortener.mobileclient.LinkShortenerApplication
 import com.elzhart.shortener.mobileclient.api.LinkClientFactory
 import com.elzhart.shortener.mobileclient.api.dto.LinkShortenInput
 import com.elzhart.shortener.mobileclient.data.LinkUiState
 import com.elzhart.shortener.mobileclient.data.UserPreferencesRepository
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +56,17 @@ class LinkViewModel(
         _linkUiState.value = LinkUiState()
     }
 
+    fun onLogOut() {
+        clearWithPreferences()
+    }
+
+    fun clearWithPreferences() {
+        viewModelScope.launch {
+            userPreferencesRepository.clear()
+            _linkUiState.value = LinkUiState()
+        }
+    }
+
     private suspend fun shortenLink(): String {
         val (_, link, alias) = _linkUiState.value
         val token = userPreferencesRepository.getToken.first()
@@ -69,7 +81,7 @@ class LinkViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val application = (this[APPLICATION_KEY] as LinkReleaseApplication)
+                val application = (this[APPLICATION_KEY] as LinkShortenerApplication)
                 LinkViewModel(application.userPreferencesRepository)
             }
         }

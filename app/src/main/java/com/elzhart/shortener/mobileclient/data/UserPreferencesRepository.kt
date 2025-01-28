@@ -55,4 +55,10 @@ class UserPreferencesRepository(
             preferences[TOKEN] = token
         }
     }
+
+    suspend fun clear() {
+        dataStore.edit { preferences ->
+            preferences.clear()
+        }
+    }
 }

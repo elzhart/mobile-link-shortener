@@ -22,14 +22,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elzhart.shortener.mobileclient.composable.CommonButton
 import com.elzhart.shortener.mobileclient.composable.TextEnterPanel
-import com.elzhart.shortener.mobileclient.data.SignUpUiState
+import com.elzhart.shortener.mobileclient.data.UserUiState
 import com.example.compose.LinkShortenerTheme
 
 
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier.fillMaxHeight(),
-    signupUiState: SignUpUiState,
+    userUiState: UserUiState,
     errorMsg: String = "",
     onEmailValueChange: (String) -> Unit = {},
     onFullNameValueChange: (String) -> Unit = {},
@@ -55,7 +55,7 @@ fun SignUpScreen(
                 keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next
             ),
             onValueChange = onEmailValueChange,
-            value = signupUiState.email
+            value = userUiState.email
         )
 
         Spacer(modifier = Modifier.size(32.dp))
@@ -68,7 +68,7 @@ fun SignUpScreen(
                 keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next
             ),
             onValueChange = onFullNameValueChange,
-            value = signupUiState.fullName
+            value = userUiState.fullName
         )
 
         Spacer(modifier = Modifier.size(32.dp))
@@ -81,7 +81,7 @@ fun SignUpScreen(
                 keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next
             ),
             onValueChange = onPasswordValueChange,
-            value = signupUiState.password
+            value = userUiState.password
         )
 
         Spacer(modifier = Modifier.size(32.dp))
@@ -94,7 +94,7 @@ fun SignUpScreen(
                 keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Done
             ),
             onValueChange = onConfirmPasswordValueChange,
-            value = signupUiState.rePassword
+            value = userUiState.rePassword
         )
 
         Spacer(modifier = Modifier.size(32.dp))
@@ -102,7 +102,7 @@ fun SignUpScreen(
         CommonButton(
             buttonTitle = R.string.signup_button_title,
             onButtonClick = onSignUpButtonClick,
-            isButtonEnabled = signupUiState.isFullFilled()
+            isButtonEnabled = userUiState.canSignUp()
         )
 
         if (errorMsg.isNotBlank()) {
@@ -121,7 +121,7 @@ fun SignUpScreen(
 fun SignupPreview() {
     LinkShortenerTheme {
         SignUpScreen(
-            signupUiState = SignUpUiState(
+            userUiState = UserUiState(
                 email = "amelzhanov@gmail.com",
                 fullName = "Elzhanov Artur Muratovich",
                 password = "abc",

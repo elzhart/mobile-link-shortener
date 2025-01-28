@@ -25,6 +25,7 @@ fun ResultPanel(
     @DrawableRes leadingIcon: Int,
     value: String,
     modifier: Modifier = Modifier,
+    onCopyClick: () -> Unit = {}
 ) {
     Column {
         TextHeader(leadingIcon, label, modifier)
@@ -40,15 +41,12 @@ fun ResultPanel(
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.size(4.dp))
-            IconButton(
-                onClick = {}, modifier = modifier
-            ) {
+            IconButton(onClick = onCopyClick, modifier = modifier) {
                 Icon(
                     painter = painterResource(id = R.drawable.content_copy),
                     contentDescription = null
                 )
             }
-
         }
     }
 }

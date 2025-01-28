@@ -37,7 +37,8 @@ fun LinkScreen(
     buttonTitle: Int,
     onLongLinkValueChange: (String) -> Unit = {},
     onAliasValueChange: (String) -> Unit = {},
-    onButtonClick: () -> Unit
+    onButtonClick: () -> Unit,
+    onCopyClick: () -> Unit = {}
 ) {
 
     Column(
@@ -81,7 +82,8 @@ fun LinkScreen(
             ResultPanel(
                 label = R.string.short_url_label,
                 leadingIcon = R.drawable.done,
-                value = linkUiState.shortLink
+                value = linkUiState.shortLink,
+                onCopyClick = onCopyClick
             )
         }
 
@@ -92,8 +94,6 @@ fun LinkScreen(
             onButtonClick = onButtonClick,
             isButtonEnabled = linkUiState.longLink.isNotBlank()
         )
-
-        Text(text = stringResource(id = buttonTitle))
     }
 }
 

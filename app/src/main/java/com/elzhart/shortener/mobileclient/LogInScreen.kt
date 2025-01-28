@@ -23,14 +23,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elzhart.shortener.mobileclient.composable.CommonButton
 import com.elzhart.shortener.mobileclient.composable.TextEnterPanel
-import com.elzhart.shortener.mobileclient.data.LoginUiState
+import com.elzhart.shortener.mobileclient.data.UserUiState
 import com.example.compose.LinkShortenerTheme
 
 
 @Composable
 fun LogInScreen(
     modifier: Modifier = Modifier.fillMaxHeight(),
-    loginUiState: LoginUiState,
+    userUiState: UserUiState,
     errorMsg: String = "",
     onEmailValueChange: (String) -> Unit = {},
     onPasswordValueChange: (String) -> Unit = {},
@@ -55,7 +55,7 @@ fun LogInScreen(
                 keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next
             ),
             onValueChange = onEmailValueChange,
-            value = loginUiState.email
+            value = userUiState.email
         )
 
         Spacer(modifier = Modifier.size(32.dp))
@@ -68,7 +68,7 @@ fun LogInScreen(
                 keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Done
             ),
             onValueChange = onPasswordValueChange,
-            value = loginUiState.password
+            value = userUiState.password
         )
 
         Spacer(modifier = Modifier.size(32.dp))
@@ -76,7 +76,7 @@ fun LogInScreen(
         CommonButton(
             buttonTitle = R.string.login_button_title,
             onButtonClick = onLogInButtonClick,
-            isButtonEnabled = loginUiState.isFullFilled()
+            isButtonEnabled = userUiState.canLogin()
         )
         Text(
             text = stringResource(id = R.string.account_exist_question),
@@ -103,7 +103,7 @@ fun LogInScreen(
 fun LoginPreview() {
     LinkShortenerTheme {
         LogInScreen(
-            loginUiState = LoginUiState(
+            userUiState = UserUiState(
                 email = "amelzhanov@gmail.com",
                 password = "abc"
             ),
